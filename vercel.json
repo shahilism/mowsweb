@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd src/mows-website && npm install && npm run build",
+  "outputDirectory": "src/mows-website/dist",
+  "installCommand": "echo 'skip root install'",
+  "framework": null
+}

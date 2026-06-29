@@ -1,0 +1,214 @@
+import { useState } from 'react';
+import { navLinks } from '../data';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+
+const textDark = 'var(--color-forest-teal)';
+const textLight = 'rgba(23, 79, 80, 0.7)';
+
+export default function Navbar({ currentPage, onNavigate }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { scrollY } = useScroll();
+  
+  // Transform background opacity based on scroll position
+  const navBackground = useTransform(
+    scrollY,
+    [0, 50],
+    ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.6)']
+  );
+  
+  const navBorder = useTransform(
+    scrollY,
+    [0, 50],
+    ['rgba(255, 255, 255, 0)', 'rgba(255, 255, 255, 0.4)']
+  );
+  
+  const navBackdropFilter = useTransform(
+    scrollY,
+    [0, 50],
+    ['blur(0px) saturate(100%)', 'blur(40px) saturate(200%)']
+  );
+
+  function go(page) {
+    onNavigate(page);
+    setMenuOpen(false);
+  }
+
+  return (
+    <>
+      <div style={{ position: 'fixed', top: 24, left: 0, width: '100%', display: 'flex', justifyContent: 'center', zIndex: 100, pointerEvents: 'none' }}>
+        <motion.nav 
+          style={{
+            pointerEvents: 'auto',
+            background: navBackground,
+            backdropFilter: navBackdropFilter,
+            WebkitBackdropFilter: navBackdropFilter,
+            border: '1px solid',
+            borderColor: navBorder,
+            borderRadius: 100,
+            padding: '8px 8px 8px 16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            height: '64px',
+            width: 'calc(100% - 48px)',
+            maxWidth: 900,
+            fontFamily: "'Clash Grotesk', sans-serif",
+            boxShadow: '0 30px 60px rgba(0,0,0,0.1)',
+          }}
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+        >
+          {/* Logo */}
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => go('home')} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: 0 }}
+            className="interactive"
+          >
+            <img src="/logo.png" alt="Mows Logo" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+          </motion.button>
+
+          {/* Desktop Nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center' }} className="desktop-nav">
+            {navLinks.map(l => {
+              const pageKey = l.label.toLowerCase();
+              const active = currentPage === pageKey;
+              return (
+                <motion.button 
+                  key={l.path} 
+                  onClick={() => go(pageKey)}
+                  className="interactive"
+                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(23, 79, 80,0.03)' }}
+                  whileTap={{ scale: 0.95 }}
+                  style={{
+                    background: active ? 'rgba(23, 79, 80,0.06)' : 'transparent', 
+                    border: 'none', cursor: 'pointer',
+                    fontSize: 14, color: active ? textDark : textLight,
+                    fontWeight: active ? 700 : 600,
+                    transition: 'color 0.2s', letterSpacing: '0.01em',
+                    padding: '8px 16px',
+                    borderRadius: 100,
+                    position: 'relative'
+                  }}
+                >
+                  {l.label}
+                  {active && (
+                    <motion.div
+                      layoutId="nav-indicator"
+                      style={{
+                        position: 'absolute',
+                        bottom: 4,
+                        left: '50%',
+                        x: '-50%',
+                        width: 4,
+                        height: 4,
+                        borderRadius: '50%',
+                        backgroundColor: textDark
+                      }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* CTA */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginLeft: 'auto' }} className="desktop-nav">
+            <motion.button 
+              onClick={() => go('booking')} 
+              className="interactive"
+              whileHover={{ scale: 1.05, backgroundColor: '#1e293b', boxShadow: '0 6px 16px rgba(23, 79, 80, 0.25)' }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                background: textDark, color: '#fff', border: 'none', borderRadius: 100,
+                padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                letterSpacing: '0.02em', boxShadow: '0 4px 12px rgba(23, 79, 80, 0.15)',
+              }}
+            >
+              Book a desk
+            </motion.button>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button onClick={() => setMenuOpen(o => !o)} style={{
+            display: 'none', background: '#f1f5f9', border: 'none', cursor: 'pointer',
+            flexDirection: 'column', gap: 4, padding: 10, borderRadius: 100, width: 44, height: 44, alignItems: 'center', justifyContent: 'center'
+          }} className="hamburger interactive" aria-label="Toggle menu">
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{
+                width: 16, height: 2, background: textDark,
+                borderRadius: 2,
+                transition: 'transform 0.2s, opacity 0.2s',
+                transform: menuOpen ? (i === 0 ? 'translateY(6px) rotate(45deg)' : i === 2 ? 'translateY(-6px) rotate(-45deg)' : 'scaleX(0)') : 'none',
+                opacity: menuOpen && i === 1 ? 0 : 1,
+              }} />
+            ))}
+          </button>
+        </motion.nav>
+      </div>
+
+      <div style={{ height: 88 }}></div>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
+            style={{
+              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99,
+              background: 'rgba(253, 253, 253, 0.98)',
+              backdropFilter: 'blur(30px)',
+              padding: '100px 24px 40px',
+              display: 'flex', flexDirection: 'column', gap: 12,
+            }}
+          >
+            {navLinks.map((l, i) => {
+              const pageKey = l.label.toLowerCase();
+              return (
+                <motion.button 
+                  key={l.path} 
+                  onClick={() => go(pageKey)}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0, transition: { delay: i * 0.05 } }}
+                  style={{
+                    background: currentPage === pageKey ? 'rgba(23, 79, 80, 0.05)' : 'transparent',
+                    border: `1px solid ${currentPage === pageKey ? 'rgba(23, 79, 80, 0.1)' : 'transparent'}`,
+                    borderRadius: 20, padding: '18px 24px',
+                    fontSize: 20, color: currentPage === pageKey ? textDark : textLight,
+                    fontWeight: currentPage === pageKey ? 800 : 600,
+                    textAlign: 'left', cursor: 'pointer',
+                    fontFamily: "'Clash Grotesk', sans-serif",
+                    transition: 'all 0.2s'
+                  }}
+                  className="interactive"
+                >
+                  {l.label}
+                </motion.button>
+              );
+            })}
+            <motion.div 
+              style={{ marginTop: 'auto' }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
+            >
+              <button onClick={() => go('booking')} style={{
+                width: '100%', background: textDark, color: '#fff', border: 'none',
+                borderRadius: 24, padding: '20px', fontSize: 18, fontWeight: 800,
+                cursor: 'pointer', fontFamily: "'Clash Grotesk', sans-serif",
+                boxShadow: '0 10px 25px rgba(23, 79, 80,0.2)'
+              }} className="interactive">Book a desk →</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-nav { display: none !important; }
+          .hamburger { display: flex !important; }
+        }
+      `}</style>
+    </>
+  );
+}
